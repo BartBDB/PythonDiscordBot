@@ -79,6 +79,10 @@ async def ban_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("You do not have the required permissions to ban people. Nice try.")
 
+@client.command()
+async def ping(ctx):
+    await ctx.send('Pong! {0}'.format(round(client.latency*1000, 1)))
+
 #to do
 #peg command
 #tell my why --aint nothing but an heartache
