@@ -3,9 +3,9 @@ import logging
 from discord.ext import commands
 from discord import Member
 from discord.ext.commands import has_permissions, MissingPermissions
-from apikey import *
-import threading
+from apikey import BOTTOKEN
 import random
+import os
 import asyncio
 
 #Intents
@@ -20,12 +20,6 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 statuschangetimer = 10
 StatusArray = ["with code", "with Fools hope and dreams", "with Scizor", "with a gun", "Arknights", "Bluestacks", "Lethal Company", "Fools DND campaign", "with Provence"]
 
-#Happens when the bot starts
-@client.event
-async def on_ready():
-    await client.change_presence(status=discord.Status.dnd, activity=discord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
-    print("Bot is ready to do useful shit!\n")
-
 #Status change every x seconds    
     
 #@tasks.loop(seconds=statuschangetimer)
@@ -33,66 +27,32 @@ async def on_ready():
 #    print('timer hit')
 #    await client.change_presence(status=discord.Status.dnd, activity=discord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
 
-
-#Test command
-@client.command()
-async def test(ctx):
-    await ctx.send("Test")
-    await ctx.send(ctx.message.guild.name)
+@client.event
+async def on_ready():
+    await client.change_presence(status=discord.Status.dnd, activity=discord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
+    print("Bot is ready to do useful shit!\n")
 
 
-@client.command()
-async def say(ctx):
-    if ctx.author.id == ID:
-        msg = ctx.message.content
-        msgtosend = msg.replace("&say ", "")
-        await ctx.send(msgtosend)
-        await ctx.message.delete()
-    else:
-        await ctx.send("This command is only usable by the bot owner, ZeverousNova")
-1
+initial_extensions = []
 
-@client.command()
-@has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member, *, reason=None):
-    if reason == (None):
-        reason = "No reason given."
-    await ctx.send(f'User {member} has been kicked. Reason: '+ reason)
-    channel = client.get_channel(LogChannelID)
-    await channel.send((f"User {member} has been kicked by {client.get_user(ctx.author.id)}. Reason: " + reason))
-    await member.send((f"You have been kicked from {ctx.message.guild.name}. Reason: " + reason))
-    await member.kick(reason=reason)
-    await ctx.message.delete()
-    
-@kick.error
-async def kick_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You do not have the required permissions to kick people. Nice try.")
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        initial_extensions.append("cogs." + filename[:-3]) #looks funny, but removes the .py at the end
 
-@client.command()
-@has_permissions(ban_members=True)
-async def ban(ctx, member: discord.Member, *, reason=None):
-    if reason == (None):
-        reason = "No reason given." 
-    await ctx.send(f'User {member} has been banned. Reason: '+ reason)
-    channel = client.get_channel(LogChannelID)
-    await channel.send((f"User {member} has been banned by {client.get_user(ctx.author.id)}. Reason: " + reason))
-    await member.send((f"You have been banned from {ctx.message.guild.name}. Reason: " + reason))
-    await member.ban(reason=reason)
-    await ctx.message.delete()
 
-@ban.error
-async def ban_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You do not have the required permissions to ban people. Nice try.")
+async def load_extensions():
+    if __name__ == '__main__':
+        for extension in initial_extensions:
+            await client.load_extension(extension)
 
-@client.command()
-async def ping(ctx):
-    await ctx.send('Pong! {0}'.format(round(client.latency*1000, 1)))
+async def main():
+    async with client:
+        await load_extensions()
+        await client.start(BOTTOKEN)
+
+asyncio.run(main())
 
 #to do
 #peg -bullets idea, not mine
 #tell my why --aint nothing but an heartache
 #ping kick ban mute warn
-
-client.run(BOTTOKEN, log_handler=handler)
