@@ -38,6 +38,7 @@ async def on_ready():
 @client.command()
 async def test(ctx):
     await ctx.send("Test")
+    await ctx.send(ctx.message.guild.name)
 
 
 @client.command()
@@ -54,10 +55,13 @@ async def say(ctx):
 @client.command()
 @has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
-    await member.kick(reason=reason)
+    if reason == (None):
+        reason = "No reason given."
     await ctx.send(f'User {member} has been kicked. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
     await channel.send((f"User {member} has been kicked by {client.get_user(ctx.author.id)}. Reason: " + reason))
+    await member.send((f"You have been kicked from {ctx.message.guild.name}. Reason: " + reason))
+    await member.kick(reason=reason)
     await ctx.message.delete()
     
 @kick.error
@@ -68,10 +72,13 @@ async def kick_error(ctx, error):
 @client.command()
 @has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, reason=None):
-    await member.ban(reason=reason)
+    if reason == (None):
+        reason = "No reason given." 
     await ctx.send(f'User {member} has been banned. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
     await channel.send((f"User {member} has been banned by {client.get_user(ctx.author.id)}. Reason: " + reason))
+    await member.send((f"You have been banned from {ctx.message.guild.name}. Reason: " + reason))
+    await member.ban(reason=reason)
     await ctx.message.delete()
 
 @ban.error
@@ -84,7 +91,7 @@ async def ping(ctx):
     await ctx.send('Pong! {0}'.format(round(client.latency*1000, 1)))
 
 #to do
-#peg command
+#peg -bullets idea, not mine
 #tell my why --aint nothing but an heartache
 #ping kick ban mute warn
 
