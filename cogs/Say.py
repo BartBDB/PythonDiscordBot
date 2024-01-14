@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from apikey import ID
 
+InsultsArray = ["This is the reason why your parents try to change the subject when somebody asks them about you", "How about you leave the server yourself instead to keep this place's IQ level higher'"]
+
 class Say(commands.Cog):
 
     def __init__(self, client):

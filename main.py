@@ -1,8 +1,6 @@
 import discord
 import logging
 from discord.ext import commands
-from discord import Member
-from discord.ext.commands import has_permissions, MissingPermissions
 from apikey import BOTTOKEN
 import random
 import os
