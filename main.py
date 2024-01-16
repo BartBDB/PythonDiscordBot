@@ -103,6 +103,13 @@ async def mute_error(interaction: nextcord.Interaction, error):
     else:
         raise error
 
+#2 warnings, third one ban
+#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+#@application_checks.has_permissions(manage_roles=True)
+#async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):
+
+
+
 #say command
 @client.command()
 async def say(ctx):
@@ -114,6 +121,19 @@ async def say(ctx):
     else:
         await ctx.message.delete()
         await ctx.send("This command is only usable by certain IDs.")
+
+
+@client.event
+async def on_message_delete(message):
+    channel = client.get_channel(LogChannelID)
+    await channel.send((f"message: **{message.content}** by **{message.author}** with attachment **{message.attachments}** was **deleted** in **{message.channel}**"))
+
+@client.event
+async def on_message_edit(before, after):
+    if before.author.bot:
+        return
+    channel = client.get_channel(1195686610495348837)
+    await channel.send((f"Message: **{before.content}** from **{before.author}** got **edited** to **{after.content}** with attachment **{after.attachments}**"))
 
 @client.event
 async def on_ready():
