@@ -18,7 +18,7 @@ client = commands.Bot(command_prefix= '&', intents=nextcord.Intents.all())
 
 #Now playing status
 statuschangetimer = 10
-StatusArray = ["with code", "with Fools hope and dreams", "with Scizor", "with a gun", "Arknights", "Bluestacks", "Lethal Company", "Fools DND campaign", "with Provence"]
+StatusArray = ["with code", "with Fools hopes and dreams", "with Scizor", "with a gun", "Arknights", "Bluestacks", "Lethal Company", "Fools DND campaign", "with Provence"]
 
 #Status change every x seconds    
     
@@ -150,14 +150,23 @@ async def say(ctx):
 @client.event
 async def on_message_delete(message):
     channel = client.get_channel(LogChannelID)
-    await channel.send((f"message: **{message.content}** by **{message.author}** with attachment **{message.attachments}** was **deleted** in **{message.channel}**"))
-
+    if message.attachments:
+        await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
+    else:
+        await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}** "))
+    
 @client.event
 async def on_message_edit(before, after):
     if before.author.bot:
         return
-    channel = client.get_channel(LogChannelID)
-    await channel.send((f"Message: **{before.content}** from **{before.author}** \ngot **edited** to \n**{after.content}** with attachment **{after.attachments}**"))
+    if (before.content != after.content):
+        channel = client.get_channel(LogChannelID)
+        if after.attachments:
+            await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}\n**With attachment: ** {after.attachments}"))
+        else:
+            await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}"))
+
+
 
 @client.event
 async def on_ready():
@@ -170,3 +179,5 @@ client.run(BOTTOKEN)
 #peg -bullets idea, not mine
 #tell my why --aint nothing but an heartache
 #ping kick ban mute warn
+
+#amongus sussy plushy
