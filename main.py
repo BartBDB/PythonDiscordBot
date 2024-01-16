@@ -104,11 +104,35 @@ async def mute_error(interaction: nextcord.Interaction, error):
         raise error
 
 #2 warnings, third one ban
-#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-#@application_checks.has_permissions(manage_roles=True)
-#async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+@application_checks.has_permissions(manage_roles=True)
+async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):  
+    """Makes Closure warn a member in the server."""
+    channel = client.get_channel(LogChannelID)
+    if reason == (None):
+        reason = "No reason given." 
+    if member.get_role(Strike2):
+        await interaction.response.send_message(f'User **{member}** has been **warned a third time and got banned**. Reason: '+ reason)
+        await channel.send((f"User **{member}** has been **warned a third time and got banned** by **{interaction.user.global_name}**. Reason: " + reason))
+        await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
+        await member.ban(reason=reason)
+    elif member.get_role(Strike1):
+        await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
+        await channel.send((f"User **{member}** has been **warned a second time** by **{interaction.user.global_name}**. Reason: " + reason))
+        await member.send((f"You have been **a second time** in **{interaction.guild.name}**. Reason: " + reason))
+        await member.add_roles(interaction.guild.get_role(Warning2))
+    else:  
+        await interaction.response.send_message(f'User **{member}** has been **warned once**. Reason: '+ reason)
+        await channel.send((f"User **{member}** has been **warned once** by **{interaction.user.global_name}**. Reason: " + reason))
+        await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
+        await member.add_roles(interaction.guild.get_role(Warning1))
 
-
+@warn.error
+async def warn_error(interaction: nextcord.Interaction, error):
+    if isinstance(error, application_checks.ApplicationMissingPermissions):
+        await interaction.response.send_message("You do not have the required permissions to warn people. Go bother Fool or someone about it instead.")
+    else:
+        raise error
 
 #say command
 @client.command()
@@ -132,8 +156,8 @@ async def on_message_delete(message):
 async def on_message_edit(before, after):
     if before.author.bot:
         return
-    channel = client.get_channel(1195686610495348837)
-    await channel.send((f"Message: **{before.content}** from **{before.author}** got **edited** to **{after.content}** with attachment **{after.attachments}**"))
+    channel = client.get_channel(LogChannelID)
+    await channel.send((f"Message: **{before.content}** from **{before.author}** \ngot **edited** to \n**{after.content}** with attachment **{after.attachments}**"))
 
 @client.event
 async def on_ready():
