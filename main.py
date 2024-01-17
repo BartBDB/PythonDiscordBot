@@ -8,6 +8,7 @@ import logging
 import random
 import os
 import time
+from typing import Optional
 
 
 #Intents
@@ -134,6 +135,25 @@ async def warn_error(interaction: nextcord.Interaction, error):
     else:
         raise error
 
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: int):  
+    """Rolls the dice and returns the result in chat"""
+    if (diceamount > 500): #more results in inconsistent errors
+        await interaction.response.send_message("Whoa hey hold on! Thats way too many dice, I can't handle that! I only got enough hands for 500 of them!")
+        return  
+    amounttext = str(diceamount)
+    sidestext = str(dicesides)
+    diceresult = str(diceamount*random.randint(1, dicesides))
+    resultsarray = []
+    for i in range (diceamount):
+        result = random.randint(1, dicesides)
+        resultsarray.append(result)
+    textresult = str(sum(resultsarray))
+    arraytext = str(resultsarray)
+    await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + textresult + ". Individual results: " + arraytext)
+
+
+
 #say command
 @client.command()
 async def say(ctx):
@@ -152,9 +172,20 @@ async def on_message_delete(message):
     if (message.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
         if message.attachments:
-            await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
+            author = str(message.author)
+            embed=nextcord.Embed(title="Deleted message from " + author)
+            embed.color(color=red)
+            embed.add_field(name="Message: ", value=message.content, inline=False)
+            embed.add_field(name="In channel: ", value=message.channel, inline=False)
+            embed.set_image(message.attachments[0].url)
+            await channel.send(embed=embed)
+            #await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
         else:
-            await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}** "))
+            author = str(message.author)
+            embed=nextcord.Embed(title="Deleted message from " + author)
+            embed.add_field(name="Message: ", value=message.content, inline=False)
+            embed.add_field(name="In channel: ", value=message.channel, inline=False)
+            await channel.send(embed=embed)
     
 @client.event
 async def on_message_edit(before, after):
@@ -164,10 +195,20 @@ async def on_message_edit(before, after):
         if (before.content != after.content):
             channel = client.get_channel(LogChannelID)
             if after.attachments or before.attachments:
-                await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**With attachment: **{before.attachments}\n**After: ** {after.content}\n**With attachment: ** {after.attachments}\n**In channel: **{after.channel}"))
+                author = str(before.author)
+                embed=nextcord.Embed(title="Edited message from " + author)
+                embed.add_field(name="Before", value=before.content, inline=False)
+                embed.add_field(name="After", value=after.content, inline=False)
+                embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
+                embed.set_image(after.attachments[0].url)
+                await channel.send(embed=embed)
             else:
-                await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}\n**In channel: **{after.channel}"))
-
+                author = str(before.author)
+                embed=nextcord.Embed(title="Edited message from " + author)
+                embed.add_field(name="Before", value=before.content, inline=False)
+                embed.add_field(name="After", value=after.content, inline=False)
+                embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
+                await channel.send(embed=embed)
 
 @client.event
 async def on_message(message):
@@ -179,16 +220,21 @@ async def on_message(message):
 async def on_member_join(member):
     if (member.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
-        await channel.send((f"```New member joined: {member.global_name}```Account created on **{member.created_at}**\n{member.display_avatar}"))
+        embed=nextcord.Embed(title="New member joined")
+        embed.add_field(name="Member", value=member.global_name, inline=False)
+        embed.add_field(name="Account created on", value=member.created_at, inline=False)
+        embed.set_image(member.display_avatar)
+        await channel.send(embed=embed)
 
 @client.event
 async def on_member_remove(member):
     if (member.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
-        await channel.send((f"```Member left: {member.global_name}```{member.display_avatar}"))
-
-
-
+        embed=nextcord.Embed(title="Member left")
+        embed.add_field(name="Member", value=member.global_name, inline=False)
+        embed.add_field(name="Account created on", value=member.created_at, inline=False)
+        embed.set_image(member.display_avatar)
+        await channel.send(embed=embed)
 
 
 @tasks.loop(seconds=300)
