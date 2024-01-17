@@ -1,8 +1,9 @@
 import nextcord
 from nextcord import Interaction
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from nextcord.ext import application_checks
 from apikey import *
+import datetime
 import logging
 import random
 import os
@@ -18,7 +19,6 @@ client = commands.Bot(command_prefix= '&', intents=nextcord.Intents.all())
 
 #Now playing status
 statuschangetimer = 10
-StatusArray = ["with code", "with Fools hopes and dreams", "with Scizor", "with a gun", "Arknights", "Bluestacks", "Lethal Company", "Fools DND campaign", "with Provence"]
 
 #Status change every x seconds    
     
@@ -120,12 +120,12 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
         await channel.send((f"User **{member}** has been **warned a second time** by **{interaction.user.global_name}**. Reason: " + reason))
         await member.send((f"You have been **a second time** in **{interaction.guild.name}**. Reason: " + reason))
-        await member.add_roles(interaction.guild.get_role(Warning2))
+        await member.add_roles(interaction.guild.get_role(Strike2))
     else:  
         await interaction.response.send_message(f'User **{member}** has been **warned once**. Reason: '+ reason)
         await channel.send((f"User **{member}** has been **warned once** by **{interaction.user.global_name}**. Reason: " + reason))
         await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
-        await member.add_roles(interaction.guild.get_role(Warning1))
+        await member.add_roles(interaction.guild.get_role(Strike1))
 
 @warn.error
 async def warn_error(interaction: nextcord.Interaction, error):
@@ -149,31 +149,59 @@ async def say(ctx):
 
 @client.event
 async def on_message_delete(message):
-    channel = client.get_channel(LogChannelID)
-    if message.attachments:
-        await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
-    else:
-        await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}** "))
+    if (message.guild.id == ZeroSMServer):
+        channel = client.get_channel(LogChannelID)
+        if message.attachments:
+            await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
+        else:
+            await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}** "))
     
 @client.event
 async def on_message_edit(before, after):
     if before.author.bot:
         return
-    if (before.content != after.content):
-        channel = client.get_channel(LogChannelID)
-        if after.attachments:
-            await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}\n**With attachment: ** {after.attachments}"))
-        else:
-            await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}"))
-
+    if (before.guild.id == ZeroSMServer):
+        if (before.content != after.content):
+            channel = client.get_channel(LogChannelID)
+            if after.attachments or before.attachments:
+                await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**With attachment: **{before.attachments}\n**After: ** {after.content}\n**With attachment: ** {after.attachments}\n**In channel: **{after.channel}"))
+            else:
+                await channel.send((f"```New edit from {before.author}:```**Before: ** {before.content}\n**After: ** {after.content}\n**In channel: **{after.channel}"))
 
 
 @client.event
-async def on_ready():
+async def on_message(message):
+    if client.user.mentioned_in(message):
+        await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
+
+
+@client.event
+async def on_member_join(member):
+    if (member.guild.id == ZeroSMServer):
+        channel = client.get_channel(LogChannelID)
+        await channel.send((f"```New member joined: {member.global_name}```Account created on **{member.created_at}**\n{member.display_avatar}"))
+
+@client.event
+async def on_member_remove(member):
+    if (member.guild.id == ZeroSMServer):
+        channel = client.get_channel(LogChannelID)
+        await channel.send((f"```Member left: {member.global_name}```{member.display_avatar}"))
+
+
+
+
+
+@tasks.loop(seconds=300)
+async def updatestatus():
     await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
+
+@client.event
+async def on_ready():
     print("Bot is ready to do useful shit!\n")
+    updatestatus.start()
 
 client.run(BOTTOKEN)
+
 
 #to do
 #peg -bullets idea, not mine
