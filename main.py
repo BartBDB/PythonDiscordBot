@@ -166,6 +166,14 @@ async def say(ctx):
         await ctx.message.delete()
         await ctx.send("This command is only usable by certain IDs.")
 
+@client.command()
+async def sen(ctx):
+    if ctx.author.id == specialid:
+        await ctx.send("amongus sussy plushy")
+        await ctx.message.delete()
+    else:
+        await ctx.message.delete()
+
 
 @client.event
 async def on_message_delete(message):
@@ -173,7 +181,7 @@ async def on_message_delete(message):
         channel = client.get_channel(LogChannelID)
         if message.attachments:
             author = str(message.author)
-            embed=nextcord.Embed(title="Deleted message from " + author)
+            embed=nextcord.Embed(title="Deleted message from \n" + author)
             embed.color(color=red)
             embed.add_field(name="Message: ", value=message.content, inline=False)
             embed.add_field(name="In channel: ", value=message.channel, inline=False)
@@ -182,7 +190,7 @@ async def on_message_delete(message):
             #await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
         else:
             author = str(message.author)
-            embed=nextcord.Embed(title="Deleted message from " + author)
+            embed=nextcord.Embed(title="Deleted message from \n" + author)
             embed.add_field(name="Message: ", value=message.content, inline=False)
             embed.add_field(name="In channel: ", value=message.channel, inline=False)
             await channel.send(embed=embed)
@@ -196,7 +204,7 @@ async def on_message_edit(before, after):
             channel = client.get_channel(LogChannelID)
             if after.attachments or before.attachments:
                 author = str(before.author)
-                embed=nextcord.Embed(title="Edited message from " + author)
+                embed=nextcord.Embed(title="Edited message from \n" + author)
                 embed.add_field(name="Before", value=before.content, inline=False)
                 embed.add_field(name="After", value=after.content, inline=False)
                 embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
@@ -204,7 +212,7 @@ async def on_message_edit(before, after):
                 await channel.send(embed=embed)
             else:
                 author = str(before.author)
-                embed=nextcord.Embed(title="Edited message from " + author)
+                embed=nextcord.Embed(title="Edited message from \n" + author)
                 embed.add_field(name="Before", value=before.content, inline=False)
                 embed.add_field(name="After", value=after.content, inline=False)
                 embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
@@ -223,6 +231,7 @@ async def on_member_join(member):
         embed=nextcord.Embed(title="New member joined")
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.add_field(name="Account created on", value=member.created_at, inline=False)
+        #todo - change date time to not be ass ymd
         embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
 
@@ -232,7 +241,6 @@ async def on_member_remove(member):
         channel = client.get_channel(LogChannelID)
         embed=nextcord.Embed(title="Member left")
         embed.add_field(name="Member", value=member.global_name, inline=False)
-        embed.add_field(name="Account created on", value=member.created_at, inline=False)
         embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
 
