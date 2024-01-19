@@ -4,11 +4,9 @@ from nextcord.ext import commands, tasks
 from nextcord.ext import application_checks
 from apikey import *
 import datetime
-import logging
 import random
 import os
 import time
-from typing import Optional
 
 
 #Intents
@@ -20,13 +18,6 @@ client = commands.Bot(command_prefix= '&', intents=nextcord.Intents.all())
 
 #Now playing status
 statuschangetimer = 10
-
-#Status change every x seconds    
-    
-#@tasks.loop(seconds=statuschangetimer)
-#async def statuschangetimerfunction():
-#    print('timer hit')
-#    await client.change_presence(status=discord.Status.dnd, activity=discord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
 
 #test command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -228,10 +219,12 @@ async def on_message(message):
 async def on_member_join(member):
     if (member.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
+        day = str(member.created_at.day)
+        month = str(member.created_at.month)
+        year = str(member.created_at.year)
         embed=nextcord.Embed(title="New member joined")
         embed.add_field(name="Member", value=member.global_name, inline=False)
-        embed.add_field(name="Account created on", value=member.created_at, inline=False)
-        #todo - change date time to not be ass ymd
+        embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
 
