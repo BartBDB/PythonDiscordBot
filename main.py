@@ -24,7 +24,6 @@ statuschangetimer = 10
 async def test(interaction: nextcord.Interaction):
     """A simple command for testing purposes. Obviously."""
     await interaction.response.send_message("Test")
-    await Interaction.response.send_message(self.message.guild.name)
 
 #ping command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -107,6 +106,7 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         await interaction.response.send_message(f'User **{member}** has been **warned a third time and got banned**. Reason: '+ reason)
         await channel.send((f"User **{member}** has been **warned a third time and got banned** by **{interaction.user.global_name}**. Reason: " + reason))
         await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
+        time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
         await member.ban(reason=reason)
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
@@ -144,7 +144,6 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
     await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + textresult + ". Individual results: " + arraytext)
 
 
-
 #say command
 @client.command()
 async def say(ctx):
@@ -155,7 +154,6 @@ async def say(ctx):
         await ctx.message.delete()
     else:
         await ctx.message.delete()
-        await ctx.send("This command is only usable by certain IDs.")
 
 @client.command()
 async def sen(ctx):
@@ -170,20 +168,14 @@ async def sen(ctx):
 async def on_message_delete(message):
     if (message.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
+        author = str(message.author)
+        embed=nextcord.Embed(colour=nextcord.Colour.brand_red(), title="Deleted message from \n" + author)
+        embed.add_field(name="Message: ", value=message.content, inline=False)
+        embed.add_field(name="In channel: ", value=message.channel, inline=False)
         if message.attachments:
-            author = str(message.author)
-            embed=nextcord.Embed(title="Deleted message from \n" + author)
-            embed.color(color=red)
-            embed.add_field(name="Message: ", value=message.content, inline=False)
-            embed.add_field(name="In channel: ", value=message.channel, inline=False)
             embed.set_image(message.attachments[0].url)
             await channel.send(embed=embed)
-            #await channel.send((f"```Message deletion from {message.author}```Message: **{message.content}**\nIn: **{message.channel}**\nWith attachment: **{message.attachments}** "))
         else:
-            author = str(message.author)
-            embed=nextcord.Embed(title="Deleted message from \n" + author)
-            embed.add_field(name="Message: ", value=message.content, inline=False)
-            embed.add_field(name="In channel: ", value=message.channel, inline=False)
             await channel.send(embed=embed)
     
 @client.event
@@ -193,20 +185,15 @@ async def on_message_edit(before, after):
     if (before.guild.id == ZeroSMServer):
         if (before.content != after.content):
             channel = client.get_channel(LogChannelID)
+            author = str(before.author)
+            embed=nextcord.Embed(colour=nextcord.Colour.teal(), title="Edited message from \n" + author)
+            embed.add_field(name="Before", value=before.content, inline=False)
+            embed.add_field(name="After", value=after.content, inline=False)
+            embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
             if after.attachments or before.attachments:
-                author = str(before.author)
-                embed=nextcord.Embed(title="Edited message from \n" + author)
-                embed.add_field(name="Before", value=before.content, inline=False)
-                embed.add_field(name="After", value=after.content, inline=False)
-                embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
                 embed.set_image(after.attachments[0].url)
                 await channel.send(embed=embed)
             else:
-                author = str(before.author)
-                embed=nextcord.Embed(title="Edited message from \n" + author)
-                embed.add_field(name="Before", value=before.content, inline=False)
-                embed.add_field(name="After", value=after.content, inline=False)
-                embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
                 await channel.send(embed=embed)
 
 @client.event
@@ -222,7 +209,7 @@ async def on_member_join(member):
         day = str(member.created_at.day)
         month = str(member.created_at.month)
         year = str(member.created_at.year)
-        embed=nextcord.Embed(title="New member joined")
+        embed=nextcord.Embed(color=nextcord.Colour.green(), title="New member joined")
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         embed.set_image(member.display_avatar)
@@ -232,7 +219,7 @@ async def on_member_join(member):
 async def on_member_remove(member):
     if (member.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
-        embed=nextcord.Embed(title="Member left")
+        embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Member left")
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
