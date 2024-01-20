@@ -131,18 +131,55 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
     """Rolls the dice and returns the result in chat"""
     if (diceamount > 500): #more results in inconsistent errors
         await interaction.response.send_message("Whoa hey hold on! Thats way too many dice, I can't handle that! I only got enough hands for 500 of them!")
-        return  
+        return 
+    if (dicesides > 500): #more results in inconsistent errors
+        await interaction.response.send_message("I can't even find a dice with that many sides, keep it at 500 max.")
+        return 
+    if (dicesides == 1): #more results in inconsistent errors
+        await interaction.response.send_message("Really now? " + str(diceamount) + " * 1? Didn't know I had to babysit a bunch of toddlers.")
+        return 
+    if (dicesides == 2): #more results in inconsistent errors
+        resultsarray = []
+        for i in range (diceamount):
+            result = random.randint(1, 2)
+            resultsarray.append(result)
+        await interaction.response.send_message("Alright. I flipped " + str(diceamount) + " coins. The total result is " + str(sum(resultsarray)))
+        resultsmessage = ("Individual results: " + str(resultsarray))
+        if len(resultsmessage) >= 2000:
+            resultarraysplit1 = resultsarraystring[:len(resultsarray)//2]
+            resultsarraysplit2 = resultsarraystring[len(resultsarray)//2:]
+            await interaction.followup.send("Individual results: ")
+            await interaction.followup.send(resultarraysplit1)
+            await interaction.followup.send(resultsarraysplit2)
+        else:
+            await interaction.followup.send(resultsmessage)
+            return 
     amounttext = str(diceamount)
     sidestext = str(dicesides)
     diceresult = str(diceamount*random.randint(1, dicesides))
     resultsarray = []
+    resultsarraystring = []
     for i in range (diceamount):
         result = random.randint(1, dicesides)
-        resultsarray.append(result)
-    textresult = str(sum(resultsarray))
-    arraytext = str(resultsarray)
-    await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + textresult + ". Individual results: " + arraytext)
+        resultsarray.append(result)    
+        if (result == 1 or result == dicesides):
+            text = str(result)
+            boldtext = ("**" + text + "**")
+            resultsarraystring.append(boldtext)
+        else:
+            resultsarraystring.append(str(result))
+    await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + str(sum(resultsarray)) + ".")
+    resultsmessage = ("Individual results: " + str(resultsarraystring))
+    if len(resultsmessage) >= 2000:
+        resultarraysplit1 = resultsarraystring[:len(resultsarraystring)//2]
+        resultsarraysplit2 = resultsarraystring[len(resultsarraystring)//2:]
+        await interaction.followup.send("Individual results: ")
+        await interaction.followup.send(resultarraysplit1)
+        await interaction.followup.send(resultsarraysplit2)
+    else:
+        await interaction.followup.send(resultsmessage)
 
+        
 
 #say command
 @client.command()
@@ -186,7 +223,7 @@ async def on_message_edit(before, after):
         if (before.content != after.content):
             channel = client.get_channel(LogChannelID)
             author = str(before.author)
-            embed=nextcord.Embed(colour=nextcord.Colour.teal(), title="Edited message from \n" + author)
+            embed=nextcord.Embed(colour=nextcord.Colour.blue(), title="Edited message from \n" + author)
             embed.add_field(name="Before", value=before.content, inline=False)
             embed.add_field(name="After", value=after.content, inline=False)
             embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
@@ -205,6 +242,7 @@ async def on_message(message):
 @client.event
 async def on_member_join(member):
     if (member.guild.id == ZeroSMServer):
+        time.sleep(1)
         channel = client.get_channel(LogChannelID)
         day = str(member.created_at.day)
         month = str(member.created_at.month)
@@ -212,16 +250,20 @@ async def on_member_join(member):
         embed=nextcord.Embed(color=nextcord.Colour.green(), title="New member joined")
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
-        embed.set_image(member.display_avatar)
+        if member.display_avatar != None:
+            embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
 
 @client.event
 async def on_member_remove(member):
     if (member.guild.id == ZeroSMServer):
+        time.sleep(1)
         channel = client.get_channel(LogChannelID)
         embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Member left")
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.set_image(member.display_avatar)
+        if member.display_avatar != None:
+            embed.set_image(member.display_avatar)
         await channel.send(embed=embed)
 
 
