@@ -30,6 +30,17 @@ async def ping(interaction: nextcord.Interaction):
     """Pings Closure and sends her response time back in ms."""
     await interaction.response.send_message('Pong! {0}'.format(round(client.latency*1000, 1)))
 
+#test command
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def hug(interaction: nextcord.Interaction):
+    """Ask Closure to send a hug. She's using a terminal in Terra so she can't physically do it"""
+    integer = random.randint(1, 10)
+    if integer == 10:
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hugs.gif')])
+    else:
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug.gif')])
+
+
 #kick command and error
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(kick_members=True)
