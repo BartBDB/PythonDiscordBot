@@ -205,15 +205,15 @@ async def sen(ctx):
 async def on_message_delete(message):
     if (message.guild.id == ZeroSMServer):
         channel = client.get_channel(LogChannelID)
-        author = str(message.author)
-        embed=nextcord.Embed(colour=nextcord.Colour.brand_red(), title="Deleted message from \n" + author)
+        author = str(message.author.nick)
+        globalauthor = str(message.author.display_name)
+        embed=nextcord.Embed(colour=nextcord.Colour.brand_red(), title="Deleted message from \n" + globalauthor, description = message.author.mention)
         embed.add_field(name="Message: ", value=message.content, inline=False)
         embed.add_field(name="In channel: ", value=message.channel, inline=False)
         if message.attachments:
             embed.set_image(message.attachments[0].url)
-            await channel.send(embed=embed)
-        else:
-            await channel.send(embed=embed)
+        await channel.send(embed=embed)
+
     
 @client.event
 async def on_message_edit(before, after):
@@ -222,16 +222,15 @@ async def on_message_edit(before, after):
     if (before.guild.id == ZeroSMServer):
         if (before.content != after.content):
             channel = client.get_channel(LogChannelID)
-            author = str(before.author)
-            embed=nextcord.Embed(colour=nextcord.Colour.blue(), title="Edited message from \n" + author)
+            author = str(before.author.nick)
+            globalauthor = str(before.author.display_name)
+            embed=nextcord.Embed(colour=nextcord.Colour.blue(), title="Edited message from \n" + globalauthor, description = before.author.mention)
             embed.add_field(name="Before", value=before.content, inline=False)
             embed.add_field(name="After", value=after.content, inline=False)
             embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
             if after.attachments or before.attachments:
                 embed.set_image(after.attachments[0].url)
-                await channel.send(embed=embed)
-            else:
-                await channel.send(embed=embed)
+            await channel.send(embed=embed)
 
 @client.event
 async def on_message(message):
@@ -247,7 +246,7 @@ async def on_member_join(member):
         day = str(member.created_at.day)
         month = str(member.created_at.month)
         year = str(member.created_at.year)
-        embed=nextcord.Embed(color=nextcord.Colour.green(), title="New member joined")
+        embed=nextcord.Embed(color=nextcord.Colour.green(), title="New member joined", description= member.mention)
         embed.add_field(name="Member", value=member.global_name, inline=False)
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         if member.display_avatar != None:
@@ -269,7 +268,7 @@ async def on_member_remove(member):
 
 @tasks.loop(seconds=300)
 async def updatestatus():
-    await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.Game(StatusArray[random.randint(0, len(StatusArray)-1)]))
+    await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.CustomActivity(StatusArray[random.randint(0, len(StatusArray)-1)]))
 
 @client.event
 async def on_ready():
@@ -277,11 +276,3 @@ async def on_ready():
     updatestatus.start()
 
 client.run(BOTTOKEN)
-
-
-#to do
-#peg -bullets idea, not mine
-#tell my why --aint nothing but an heartache
-#ping kick ban mute warn
-
-#amongus sussy plushy
