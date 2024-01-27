@@ -13,8 +13,7 @@ import time
 intents = nextcord.Intents.all()
 intents.members = True
 
-#Logging
-client = commands.Bot(command_prefix= '&', intents=nextcord.Intents.all())
+client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 
 #Now playing status
 statuschangetimer = 10
@@ -179,28 +178,6 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
     else:
         await interaction.followup.send(resultsmessage)
 
-        
-
-#say command
-@client.command()
-async def say(ctx):
-    if ctx.author.id == ID:
-        msg = ctx.message.content
-        msgtosend = msg.replace("&say ", "")
-        await ctx.send(msgtosend)
-        await ctx.message.delete()
-    else:
-        await ctx.message.delete()
-
-@client.command()
-async def sen(ctx):
-    if ctx.author.id == specialid:
-        await ctx.send("amongus sussy plushy")
-        await ctx.message.delete()
-    else:
-        await ctx.message.delete()
-
-
 @client.event
 async def on_message_delete(message):
     if (message.guild.id == ZeroSMServer):
@@ -211,7 +188,8 @@ async def on_message_delete(message):
         embed.add_field(name="Message: ", value=message.content, inline=False)
         embed.add_field(name="In channel: ", value=message.channel, inline=False)
         if message.attachments:
-            embed.set_image(message.attachments[0].url)
+            image = message.attachments[0].url.replace('cdn.discordapp.com', 'media.discordapp.net')
+            embed.set_image(image)
         await channel.send(embed=embed)
 
     
