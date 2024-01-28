@@ -35,10 +35,13 @@ async def ping(interaction: nextcord.Interaction):
 async def hug(interaction: nextcord.Interaction):
     """Ask Closure to send a hug. She's using a terminal in Terra so she can't physically do it"""
     integer = random.randint(1, 10)
+    if not os.path.isdir('images/hug'):
+        await interaction.response.send_message("How odd, I can't find the images. Tell Zev he messed up.")
+        return
     if integer == 10:
-        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hugs.gif')])
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug/hugs.gif')])
     else:
-        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug.gif')])
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug/hug.gif')])
 
 
 #kick command and error
@@ -50,7 +53,7 @@ async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         reason = "No reason given."
     await interaction.response.send_message(f'User **{member}** has been **kicked**. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
-    await channel.send((f"User **{member}** has been **kicked** by **{interaction.user.global_name}**. Reason: " + reason))
+    await channel.send((f"User **{member}** has been **kicked** by **{interaction.user.name}**. Reason: " + reason))
     await member.send((f"You have been **kicked** from **{interaction.guild.name}**. Reason: " + reason))
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
     await member.kick(reason=reason)
@@ -71,7 +74,7 @@ async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason
         reason = "No reason given." 
     await interaction.response.send_message(f'User **{member}** has been **banned**. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
-    await channel.send((f"User **{member}** has been **banned** by **{interaction.user.global_name}**. Reason: " + reason))
+    await channel.send((f"User **{member}** has been **banned** by **{interaction.user.name}**. Reason: " + reason))
     await member.send((f"You have been **banned** from **{interaction.guild.name}**. Reason: " + reason))
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
     await member.ban(reason=reason)
@@ -93,7 +96,7 @@ async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     else: 
         await interaction.response.send_message(f'User **{member}** has been **muted**. Reason: '+ reason)
         channel = client.get_channel(LogChannelID)
-        await channel.send((f"User **{member}** has been **muted** by **{interaction.user.global_name}**. Reason: " + reason))
+        await channel.send((f"User **{member}** has been **muted** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **muted** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
 
@@ -114,18 +117,18 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         reason = "No reason given." 
     if member.get_role(Strike2):
         await interaction.response.send_message(f'User **{member}** has been **warned a third time and got banned**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned a third time and got banned** by **{interaction.user.global_name}**. Reason: " + reason))
+        await channel.send((f"User **{member}** has been **warned a third time and got banned** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
         time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
         await member.ban(reason=reason)
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned a second time** by **{interaction.user.global_name}**. Reason: " + reason))
+        await channel.send((f"User **{member}** has been **warned a second time** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **a second time** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike2))
     else:  
         await interaction.response.send_message(f'User **{member}** has been **warned once**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned once** by **{interaction.user.global_name}**. Reason: " + reason))
+        await channel.send((f"User **{member}** has been **warned once** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike1))
 
@@ -156,13 +159,16 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
         await interaction.response.send_message("Alright. I flipped " + str(diceamount) + " coins. The total result is " + str(sum(resultsarray)))
         resultsmessage = ("Individual results: " + str(resultsarray))
         if len(resultsmessage) >= 2000:
-            resultarraysplit1 = resultsarraystring[:len(resultsarray)//2]
+            resultsarraysplit1 = resultsarraystring[:len(resultsarray)//2]
+            split1 = resultsarraysplit1.replace("'", "")
             resultsarraysplit2 = resultsarraystring[len(resultsarray)//2:]
+            split2 = resultsarraysplit2.replace("'", "")
             await interaction.followup.send("Individual results: ")
-            await interaction.followup.send(resultarraysplit1)
-            await interaction.followup.send(resultsarraysplit2)
+            await interaction.followup.send(split1)
+            await interaction.followup.send(split2)
         else:
-            await interaction.followup.send(resultsmessage)
+            result = resultsmessage.replace("'", "")
+            await interaction.followup.send(result)
             return 
     amounttext = str(diceamount)
     sidestext = str(dicesides)
@@ -181,13 +187,18 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
     await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + str(sum(resultsarray)) + ".")
     resultsmessage = ("Individual results: " + str(resultsarraystring))
     if len(resultsmessage) >= 2000:
-        resultarraysplit1 = resultsarraystring[:len(resultsarraystring)//2]
+        resultsarraysplit1 = resultsarraystring[:len(resultsarraystring)//2]
+        strsplit1 = str(resultsarraysplit1)
+        split1 = strsplit1.replace("'", "")
         resultsarraysplit2 = resultsarraystring[len(resultsarraystring)//2:]
+        strsplit2 = str(resultsarraysplit2)
+        split2 = strsplit2.replace("'", "")
         await interaction.followup.send("Individual results: ")
-        await interaction.followup.send(resultarraysplit1)
-        await interaction.followup.send(resultsarraysplit2)
+        await interaction.followup.send(split1)
+        await interaction.followup.send(split2)
     else:
-        await interaction.followup.send(resultsmessage)
+        result = resultsmessage.replace("'", "")
+        await interaction.followup.send(result)
 
 @client.event
 async def on_message_delete(message):
@@ -199,7 +210,7 @@ async def on_message_delete(message):
         embed.add_field(name="Message: ", value=message.content, inline=False)
         embed.add_field(name="In channel: ", value=message.channel, inline=False)
         if message.attachments:
-            image = message.attachments[0].url.replace('cdn.discordapp.com', 'media.discordapp.net')
+            image = message.attachments[0].proxy_url.replace('cdn.discordapp.com', 'media.discordapp.net')
             embed.set_image(image)
         await channel.send(embed=embed)
 
@@ -212,7 +223,7 @@ async def on_message_edit(before, after):
         if (before.content != after.content):
             channel = client.get_channel(LogChannelID)
             author = str(before.author.nick)
-            globalauthor = str(before.author.display_name)
+            globalauthor = str(before.author.name)
             embed=nextcord.Embed(colour=nextcord.Colour.blue(), title="Edited message from \n" + globalauthor, description = before.author.mention)
             embed.add_field(name="Before", value=before.content, inline=False)
             embed.add_field(name="After", value=after.content, inline=False)
@@ -236,7 +247,7 @@ async def on_member_join(member):
         month = str(member.created_at.month)
         year = str(member.created_at.year)
         embed=nextcord.Embed(color=nextcord.Colour.green(), title="New member joined", description= member.mention)
-        embed.add_field(name="Member", value=member.global_name, inline=False)
+        embed.add_field(name="Member", value=member.name, inline=False)
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         if member.display_avatar != None:
             embed.set_image(member.display_avatar)
@@ -248,7 +259,7 @@ async def on_member_remove(member):
         time.sleep(1)
         channel = client.get_channel(LogChannelID)
         embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Member left")
-        embed.add_field(name="Member", value=member.global_name, inline=False)
+        embed.add_field(name="Member", value=member.name, inline=False)
         embed.set_image(member.display_avatar)
         if member.display_avatar != None:
             embed.set_image(member.display_avatar)
