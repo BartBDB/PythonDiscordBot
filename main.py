@@ -3,26 +3,16 @@ from nextcord import Interaction
 from nextcord.ext import commands, tasks
 from nextcord.ext import application_checks
 from apikey import *
-import datetime
 import random
 import os
 import time
-
+import sys
 
 #Intents
 intents = nextcord.Intents.all()
 intents.members = True
 
 client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
-
-#Now playing status
-statuschangetimer = 10
-
-#test command
-@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-async def test(interaction: nextcord.Interaction):
-    """A simple command for testing purposes. Obviously."""
-    await interaction.response.send_message("Test")
 
 #ping command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -210,7 +200,7 @@ async def on_message_delete(message):
         embed.add_field(name="Message: ", value=message.content, inline=False)
         embed.add_field(name="In channel: ", value=message.channel, inline=False)
         if message.attachments:
-            image = message.attachments[0].proxy_url.replace('cdn.discordapp.com', 'media.discordapp.net')
+            image = message.attachments[0].proxy_url
             embed.set_image(image)
         await channel.send(embed=embed)
 
@@ -270,9 +260,38 @@ async def on_member_remove(member):
 async def updatestatus():
     await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.CustomActivity(StatusArray[random.randint(0, len(StatusArray)-1)]))
 
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def restart(interaction: nextcord.Interaction):
+	"""Restarts Closure's terminal. Only usable by ZeverousNova"""
+	if interaction.user.id == ID:
+		await interaction.response.send_message("Alright, restarting the terminal.")
+		await os.execv(sys.executable, ['python'] + sys.argv)
+	else:
+		await interaction.response.send_message("Yeah, not happening.")
+
 @client.event
 async def on_ready():
     print("Bot is ready to do useful shit!\n")
     updatestatus.start()
+    
 
 client.run(BOTTOKEN)
+
+
+#test command
+#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+#async def test(interaction: nextcord.Interaction):
+#    """A simple command for testing purposes. Obviously."""
+#    await interaction.response.send_message("Test")
+
+#Random message
+#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+#async def randommessage(interaction: nextcord.Interaction,):
+#	"""Grabs a random message from this channel"""
+#	array = []
+#	async for message in interaction.channel.history(limit=500):
+#		array.append(message)
+#	integer = random.randint(0, 500)
+#	await interaction.response.send_message(str(array[integer].author) + ": " + array[integer].content)
+#	await interaction.followup.send(array[integer].jump_url)
