@@ -1,5 +1,6 @@
 import nextcord
 from nextcord import Interaction
+from nextcord.utils import get
 from nextcord.ext import commands, tasks
 from nextcord.ext import application_checks
 from apikey import *
@@ -19,6 +20,7 @@ client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 async def ping(interaction: nextcord.Interaction):
     """Pings Closure and sends her response time back in ms."""
     await interaction.response.send_message('Pong! {0}'.format(round(client.latency*1000, 1)))
+
 
 #test command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -48,12 +50,14 @@ async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
     await member.kick(reason=reason)
 
+
 @kick.error
 async def kick_error(interaction: nextcord.Interaction, error):
     if isinstance(error, application_checks.ApplicationMissingPermissions):
         await interaction.response.send_message("You do not have the required permissions to kick people. Go bother Fool or someone about it instead.")
     else:
         raise error
+
 
 #ban command and error
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -69,12 +73,14 @@ async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
     await member.ban(reason=reason)
 
+
 @ban.error
 async def ban_error(interaction: nextcord.Interaction, error):
     if isinstance(error, application_checks.ApplicationMissingPermissions):
         await interaction.response.send_message("You do not have the required permissions to ban people. Go bother Fool or someone about it instead.")
     else:
         raise error
+
 
 #mute command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -90,12 +96,14 @@ async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         await member.send((f"You have been **muted** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
 
+
 @mute.error
 async def mute_error(interaction: nextcord.Interaction, error):
     if isinstance(error, application_checks.ApplicationMissingPermissions):
         await interaction.response.send_message("You do not have the required permissions to mute people. Go bother Fool or someone about it instead.")
     else:
         raise error
+
 
 #2 warnings, third one ban
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -122,12 +130,14 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike1))
 
+
 @warn.error
 async def warn_error(interaction: nextcord.Interaction, error):
     if isinstance(error, application_checks.ApplicationMissingPermissions):
         await interaction.response.send_message("You do not have the required permissions to warn people. Go bother Fool or someone about it instead.")
     else:
         raise error
+
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: int):  
@@ -190,10 +200,10 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
         result = resultsmessage.replace("'", "")
         await interaction.followup.send(result)
 
+
 @client.event
 async def on_message_delete(message):
     if (message.guild.id == ZeroSMServer):
-        channel = client.get_channel(LogChannelID)
         author = str(message.author.nick)
         globalauthor = str(message.author.display_name)
         embed=nextcord.Embed(colour=nextcord.Colour.brand_red(), title="Deleted message from \n" + globalauthor, description = message.author.mention)
@@ -202,7 +212,7 @@ async def on_message_delete(message):
         if message.attachments:
             image = message.attachments[0].proxy_url
             embed.set_image(image)
-        await channel.send(embed=embed)
+        await loggingchannel.send(embed=embed)
 
     
 @client.event
@@ -211,8 +221,6 @@ async def on_message_edit(before, after):
         return
     if (before.guild.id == ZeroSMServer):
         if (before.content != after.content):
-            channel = client.get_channel(LogChannelID)
-            author = str(before.author.nick)
             globalauthor = str(before.author.name)
             embed=nextcord.Embed(colour=nextcord.Colour.blue(), title="Edited message from \n" + globalauthor, description = before.author.mention)
             embed.add_field(name="Before", value=before.content, inline=False)
@@ -220,19 +228,26 @@ async def on_message_edit(before, after):
             embed.add_field(name="Link to jump to message", value=after.jump_url, inline=False)
             if after.attachments or before.attachments:
                 embed.set_image(after.attachments[0].url)
-            await channel.send(embed=embed)
+            await loggingchannel.send(embed=embed)
+
 
 @client.event
 async def on_message(message):
     if client.user.mentioned_in(message):
-        await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
+        userroles = message.author.roles
+        mod = get(message.guild.roles, id=Modrole)
+        admin = get(message.guild.roles, id=Adminrole)
+        fool = get(message.guild.roles, id=Fool)
+        if mod in userroles or admin in userroles or fool in userroles:
+            await message.channel.send(modresponsearray[random.randint(0, len(modresponsearray)-1)])
+        else:
+            await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
 
 
 @client.event
 async def on_member_join(member):
     if (member.guild.id == ZeroSMServer):
         time.sleep(1)
-        channel = client.get_channel(LogChannelID)
         day = str(member.created_at.day)
         month = str(member.created_at.month)
         year = str(member.created_at.year)
@@ -241,24 +256,32 @@ async def on_member_join(member):
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         if member.display_avatar != None:
             embed.set_image(member.display_avatar)
-        await channel.send(embed=embed)
+        await loggingchannel.send(embed=embed)
+
 
 @client.event
 async def on_member_remove(member):
     if (member.guild.id == ZeroSMServer):
         time.sleep(1)
-        channel = client.get_channel(LogChannelID)
         embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Member left")
         embed.add_field(name="Member", value=member.name, inline=False)
         embed.set_image(member.display_avatar)
         if member.display_avatar != None:
             embed.set_image(member.display_avatar)
-        await channel.send(embed=embed)
+        await loggingchannel.send(embed=embed)
+
+#bad bad bad BAAAAAD IDEA
+#@client.event
+#async def on_error(error):
+#    #await loggingchannel.send(error)
+#    await os.execv(sys.executable, ['python'] + sys.argv)
 
 
 @tasks.loop(seconds=300)
 async def updatestatus():
-    await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.CustomActivity(StatusArray[random.randint(0, len(StatusArray)-1)]))
+    #test = client.get_emoji(1193136758427242536)
+    #provenceemoji = nextcord.PartialEmoji.from_str(str(test))
+    await client.change_presence(status=nextcord.Status.dnd, activity=nextcord.CustomActivity(name = (StatusArray[random.randint(0, len(StatusArray)-1)])))#, emoji = provenceemoji))
 
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -270,20 +293,37 @@ async def restart(interaction: nextcord.Interaction):
 	else:
 		await interaction.response.send_message("Yeah, not happening.")
 
-@client.event
-async def on_ready():
-    print("Bot is ready to do useful shit!\n")
-    updatestatus.start()
-    
 
-client.run(BOTTOKEN)
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def shutdown(interaction: nextcord.Interaction):
+	"""Shuts down Closure's terminal. Only usable by ZeverousNova"""
+	if interaction.user.id == ID:
+		await interaction.response.send_message("Shutting down the terminal. Don't forget to restart the pi.")
+		exit()
+	else:
+		await interaction.response.send_message("Nuh uh")
 
 
 #test command
-#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-#async def test(interaction: nextcord.Interaction):
-#    """A simple command for testing purposes. Obviously."""
-#    await interaction.response.send_message("Test")
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def test(interaction: nextcord.Interaction):
+    """A simple command for testing purposes. Obviously."""
+    test = client.get_emoji(1193136758427242536)
+    provenceemoji = nextcord.PartialEmoji.from_str(str(test))
+    await interaction.response.send_message(provenceemoji)
+
+
+@client.event
+async def on_ready():
+    updatestatus.start()
+    global modresponsearray 
+    modresponsearray = ResponseArray + ModArray
+    global loggingchannel
+    loggingchannel = client.get_channel(LogChannelID)
+    print("Bot is ready to do useful shit!\n")
+
+client.run(BOTTOKEN)
+
 
 #Random message
 #@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
