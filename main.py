@@ -15,6 +15,16 @@ intents.members = True
 
 client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 
+
+#im tired rn ok this will get done later to kick the repetition out
+#def create_embed():
+#    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description= member.mention)
+#    embed.add_field(name="Member", value=member.name, inline=False)
+#    embed.add_field(name="Reason", value=reason, inline=False)
+#    if member.display_avatar != None:
+#        embed.set_thumbnail(member.display_avatar)
+#    await listchannelid.send(embed=embed)
+
 #ping command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def ping(interaction: nextcord.Interaction):
@@ -27,13 +37,13 @@ async def ping(interaction: nextcord.Interaction):
 async def hug(interaction: nextcord.Interaction):
     """Ask Closure to send a hug. She's using a terminal in Terra so she can't physically do it"""
     integer = random.randint(1, 10)
-    if not os.path.isdir('images/hug'):
+    if not os.path.isdir(hugfilepath):
         await interaction.response.send_message("How odd, I can't find the images. Tell Zev he messed up.")
         return
     if integer == 10:
-        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug/hugs.gif')])
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File(hugfilepath + '/hugs.gif')])
     else:
-        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File('images/hug/hug.gif')])
+        await interaction.response.send_message("Sending you a hug!", files=[nextcord.File(hugfilepath + '/hug.gif')])
 
 
 #kick command and error
@@ -45,6 +55,15 @@ async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         reason = "No reason given."
     await interaction.response.send_message(f'User **{member}** has been **kicked**. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
+    listchannel = client.get_channel(ListChannelID)
+    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been kicked", description= member.mention)
+    embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
+    embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="Reason", value=reason, inline=False)
+    if member.display_avatar != None:
+        embed.set_thumbnail(member.display_avatar)
+    await listchannel.send(embed=embed)
+    await channel.send(embed=embed)
     await channel.send((f"User **{member}** has been **kicked** by **{interaction.user.name}**. Reason: " + reason))
     await member.send((f"You have been **kicked** from **{interaction.guild.name}**. Reason: " + reason))
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
@@ -68,7 +87,15 @@ async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason
         reason = "No reason given." 
     await interaction.response.send_message(f'User **{member}** has been **banned**. Reason: '+ reason)
     channel = client.get_channel(LogChannelID)
-    await channel.send((f"User **{member}** has been **banned** by **{interaction.user.name}**. Reason: " + reason))
+    listchannel = client.get_channel(ListChannelID)
+    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been banned", description= member.mention)
+    embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
+    embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="Reason", value=reason, inline=False)
+    if member.display_avatar != None:
+        embed.set_thumbnail(member.display_avatar)
+    await listchannel.send(embed=embed)
+    await channel.send(embed=embed)
     await member.send((f"You have been **banned** from **{interaction.guild.name}**. Reason: " + reason))
     time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
     await member.ban(reason=reason)
@@ -92,7 +119,15 @@ async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     else: 
         await interaction.response.send_message(f'User **{member}** has been **muted**. Reason: '+ reason)
         channel = client.get_channel(LogChannelID)
-        await channel.send((f"User **{member}** has been **muted** by **{interaction.user.name}**. Reason: " + reason))
+        listchannel = client.get_channel(ListChannelID)
+        embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been muted", description= member.mention)
+        embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
+        embed.add_field(name="Member", value=member.name, inline=False)
+        embed.add_field(name="Reason", value=reason, inline=False)
+        if member.display_avatar != None:
+            embed.set_thumbnail(member.display_avatar)
+        await listchannel.send(embed=embed)
+        await channel.send(embed=embed)
         await member.send((f"You have been **muted** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
 
@@ -111,24 +146,36 @@ async def mute_error(interaction: nextcord.Interaction, error):
 async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):  
     """Makes Closure warn a member in the server."""
     channel = client.get_channel(LogChannelID)
+    listchannel = client.get_channel(ListChannelID)
+    embedtitle = ""
     if reason == (None):
         reason = "No reason given." 
     if member.get_role(Strike2):
         await interaction.response.send_message(f'User **{member}** has been **warned a third time and got banned**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned a third time and got banned** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
         time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
         await member.ban(reason=reason)
+        embedtitle = "Ban due to 3rd strike"
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned a second time** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **a second time** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike2))
+        embedtitle = "Second strike applied"
     else:  
         await interaction.response.send_message(f'User **{member}** has been **warned once**. Reason: '+ reason)
-        await channel.send((f"User **{member}** has been **warned once** by **{interaction.user.name}**. Reason: " + reason))
         await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike1))
+        embedtitle = "First strike applied"
+
+    #Send a message in the list channel
+    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description= member.mention)
+    embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
+    embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="Reason", value=reason, inline=False)
+    if member.display_avatar != None:
+        embed.set_thumbnail(member.display_avatar)
+    await listchannel.send(embed=embed)
+    await channel.send(embed=embed)
 
 
 @warn.error
@@ -148,10 +195,10 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
     if (dicesides > 500): #more results in inconsistent errors
         await interaction.response.send_message("I can't even find a dice with that many sides, keep it at 500 max.")
         return 
-    if (dicesides == 1): #more results in inconsistent errors
+    if (dicesides == 1): 
         await interaction.response.send_message("Really now? " + str(diceamount) + " * 1? Didn't know I had to babysit a bunch of toddlers.")
         return 
-    if (dicesides == 2): #more results in inconsistent errors
+    if (dicesides == 2): 
         resultsarray = []
         for i in range (diceamount):
             result = random.randint(1, 2)
@@ -255,7 +302,7 @@ async def on_member_join(member):
         embed.add_field(name="Member", value=member.name, inline=False)
         embed.add_field(name="Account created on", value=(day + "-" + month + "-" + year), inline=False)
         if member.display_avatar != None:
-            embed.set_image(member.display_avatar)
+            embed.set_thumbnail(member.display_avatar)
         await loggingchannel.send(embed=embed)
 
 
@@ -267,8 +314,18 @@ async def on_member_remove(member):
         embed.add_field(name="Member", value=member.name, inline=False)
         embed.set_image(member.display_avatar)
         if member.display_avatar != None:
-            embed.set_image(member.display_avatar)
+            embed.set_thumbnail(member.display_avatar)
         await loggingchannel.send(embed=embed)
+
+
+@client.event
+async def on_message_bulk_delete(messages):
+    if (messages.guild.id == ZeroSMServer):
+        embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Messages have been purged")
+        embed.add_field(name="Amount of messages", value=len(messages), inline=False)
+        embed.add_field(name="Channel", value=messages[0].channel, inline=False)
+        await loggingchannel.send(embed=embed)
+
 
 #bad bad bad BAAAAAD IDEA
 #@client.event
