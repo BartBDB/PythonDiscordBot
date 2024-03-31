@@ -160,6 +160,7 @@ cython_debug/
 #.idea/
 
 apikey.py
+aprilfools.py
 *.png
 *.jpg
 *.jpeg
