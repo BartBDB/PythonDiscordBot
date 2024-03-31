@@ -59,6 +59,7 @@ async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been kicked", description= member.mention)
     embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
     embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="User ID", value=member.id, inline=False)
     embed.add_field(name="Reason", value=reason, inline=False)
     if member.display_avatar != None:
         embed.set_thumbnail(member.display_avatar)
@@ -91,6 +92,7 @@ async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason
     embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been banned", description= member.mention)
     embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
     embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="User ID", value=member.id, inline=False)
     embed.add_field(name="Reason", value=reason, inline=False)
     if member.display_avatar != None:
         embed.set_thumbnail(member.display_avatar)
@@ -123,6 +125,7 @@ async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title="User has been muted", description= member.mention)
         embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
         embed.add_field(name="Member", value=member.name, inline=False)
+        embed.add_field(name="User ID", value=member.id, inline=False)
         embed.add_field(name="Reason", value=reason, inline=False)
         if member.display_avatar != None:
             embed.set_thumbnail(member.display_avatar)
@@ -171,6 +174,7 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description= member.mention)
     embed.add_field(name="Action applied by", value=str(interaction.user.id) + ", " + interaction.user.name, inline=False)
     embed.add_field(name="Member", value=member.name, inline=False)
+    embed.add_field(name="User ID", value=member.id, inline=False)
     embed.add_field(name="Reason", value=reason, inline=False)
     if member.display_avatar != None:
         embed.set_thumbnail(member.display_avatar)
