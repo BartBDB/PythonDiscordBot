@@ -312,7 +312,6 @@ async def on_member_remove(member):
         time.sleep(1)
         embed=nextcord.Embed(color=nextcord.Colour.blurple(), title="Member left")
         embed.add_field(name="Member", value=member.name, inline=False)
-        embed.set_image(member.display_avatar)
         if member.display_avatar != None:
             embed.set_thumbnail(member.display_avatar)
         await loggingchannel.send(embed=embed)
