@@ -3,7 +3,7 @@ from nextcord import Interaction
 from nextcord.utils import get
 from nextcord.ext import commands, tasks
 from nextcord.ext import application_checks
-from apikey import *
+from aprilfools import *
 import random
 import os
 import time
@@ -28,14 +28,14 @@ client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 #ping command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def ping(interaction: nextcord.Interaction):
-    """Pings Closure and sends her response time back in ms."""
+    """Pings Mayer and sends her response time back in ms."""
     await interaction.response.send_message('Pong! {0}'.format(round(client.latency*1000, 1)))
 
 
 #test command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def hug(interaction: nextcord.Interaction):
-    """Ask Closure to send a hug. She's using a terminal in Terra so she can't physically do it"""
+    """Ask Mayer to send a hug. She's using a terminal in Terra so she can't physically do it"""
     integer = random.randint(1, 10)
     if not os.path.isdir(hugfilepath):
         await interaction.response.send_message("How odd, I can't find the images. Tell Zev he messed up.")
@@ -50,7 +50,7 @@ async def hug(interaction: nextcord.Interaction):
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(kick_members=True)
 async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):
-    """Makes Closure kick a member out of the server."""
+    """Makes Mayer kick a member out of the server."""
     if reason == (None):
         reason = "No reason given."
     await interaction.response.send_message(f'User **{member}** has been **kicked**. Reason: '+ reason)
@@ -82,7 +82,7 @@ async def kick_error(interaction: nextcord.Interaction, error):
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(ban_members=True)
 async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):
-    """Makes Closure ban a member out of the server."""
+    """Makes Mayer ban a member out of the server."""
     if reason == (None):
         reason = "No reason given." 
     await interaction.response.send_message(f'User **{member}** has been **banned**. Reason: '+ reason)
@@ -113,7 +113,7 @@ async def ban_error(interaction: nextcord.Interaction, error):
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(manage_roles=True)
 async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):
-    """Makes Closure mute a member in the server."""
+    """Makes Mayer mute a member in the server."""
     if reason == (None):
         reason = "No reason given." 
     else: 
@@ -144,7 +144,7 @@ async def mute_error(interaction: nextcord.Interaction, error):
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(manage_roles=True)
 async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reason=None):  
-    """Makes Closure warn a member in the server."""
+    """Makes Mayer warn a member in the server."""
     channel = client.get_channel(LogChannelID)
     listchannel = client.get_channel(ListChannelID)
     embedtitle = ""
@@ -342,7 +342,7 @@ async def updatestatus():
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def restart(interaction: nextcord.Interaction):
-	"""Restarts Closure's terminal. Only usable by ZeverousNova"""
+	"""Restarts Mayers terminal. Only usable by ZeverousNova"""
 	if interaction.user.id == ID:
 		await interaction.response.send_message("Alright, restarting the terminal.")
 		await os.execv(sys.executable, ['python'] + sys.argv)
@@ -352,7 +352,7 @@ async def restart(interaction: nextcord.Interaction):
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def shutdown(interaction: nextcord.Interaction):
-	"""Shuts down Closure's terminal. Only usable by ZeverousNova"""
+	"""Shuts down Mayers terminal. Only usable by ZeverousNova"""
 	if interaction.user.id == ID:
 		await interaction.response.send_message("Shutting down the terminal. Don't forget to restart the pi.")
 		exit()
