@@ -15,15 +15,20 @@ intents.members = True
 
 client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 
-
-#im tired rn ok this will get done later to kick the repetition out
-#def create_embed():
-#    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description= member.mention)
-#    embed.add_field(name="Member", value=member.name, inline=False)
+#Thisll be done soon i swear
+#def create_embed(embedtitle, membermention, interactionuserid, interactionusername, membername, memberid, reason, hasavatar, displayavatar):
+#    channel = client.get_channel(LogChannelID)
+#    listchannel = client.get_channel(ListChannelID)
+#    embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description=membermention)
+#    embed.add_field(name="Action applied by", value=str(interactionuserid) + ", " + interactionusername, inline=False)
+#    embed.add_field(name="Member", value=membername, inline=False)
+#    embed.add_field(name="User ID", value=memberid, inline=False)
 #    embed.add_field(name="Reason", value=reason, inline=False)
-#    if member.display_avatar != None:
-#        embed.set_thumbnail(member.display_avatar)
-#    await listchannelid.send(embed=embed)
+#    if hasavatar == True:
+#        embed.set_thumbnail(displayavatar)
+#    listchannel.send(embed=embed)
+#    channel.send(embed=embed)
+    
 
 #ping command
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
@@ -284,17 +289,19 @@ async def on_message_edit(before, after):
 
 @client.event
 async def on_message(message):
-    if client.user.mentioned_in(message):
-        userroles = message.author.roles
-        mod = get(message.guild.roles, id=Modrole)
-        admin = get(message.guild.roles, id=Adminrole)
-        fool = get(message.guild.roles, id=Fool)
+    userroles = message.author.roles
+    mod = get(message.guild.roles, id=Modrole)
+    admin = get(message.guild.roles, id=Adminrole)
+    fool = get(message.guild.roles, id=Fool)
+    #send something in the chat when mentioned with special lines for mods and higher only
+    if client.user.mentioned_in(message) and message.mention_everyone == False:
         if mod in userroles or admin in userroles or fool in userroles:
             await message.channel.send(modresponsearray[random.randint(0, len(modresponsearray)-1)])
         else:
             await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
 
-
+    #TODO - Check for invites
+        
 @client.event
 async def on_member_join(member):
     if (member.guild.id == ZeroSMServer):
@@ -328,13 +335,6 @@ async def on_message_bulk_delete(messages):
         embed.add_field(name="Amount of messages", value=len(messages), inline=False)
         embed.add_field(name="Channel", value=messages[0].channel, inline=False)
         await loggingchannel.send(embed=embed)
-
-
-#bad bad bad BAAAAAD IDEA
-#@client.event
-#async def on_error(error):
-#    #await loggingchannel.send(error)
-#    await os.execv(sys.executable, ['python'] + sys.argv)
 
 
 @tasks.loop(seconds=300)
