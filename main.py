@@ -166,7 +166,7 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         embedtitle = "Ban due to 3rd strike"
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
-        await member.send((f"You have been **a second time** in **{interaction.guild.name}**. Reason: " + reason))
+        await member.send((f"You have been **warned twice** in **{interaction.guild.name}**. Any further strikes will result in a ban from the server. Reason: " + reason))
         await member.add_roles(interaction.guild.get_role(Strike2))
         embedtitle = "Second strike applied"
     else:  
@@ -226,9 +226,6 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
             result = resultsmessage.replace("'", "")
             await interaction.followup.send(result)
             return 
-    amounttext = str(diceamount)
-    sidestext = str(dicesides)
-    diceresult = str(diceamount*random.randint(1, dicesides))
     resultsarray = []
     resultsarraystring = []
     for i in range (diceamount):
@@ -241,20 +238,21 @@ async def dice(interaction: nextcord.Interaction, diceamount: int, dicesides: in
         else:
             resultsarraystring.append(str(result))
     await interaction.response.send_message("Rolled " + str(diceamount) + "d" + str(dicesides) + ". Result: " + str(sum(resultsarray)) + ".")
-    resultsmessage = ("Individual results: " + str(resultsarraystring))
-    if len(resultsmessage) >= 2000:
-        resultsarraysplit1 = resultsarraystring[:len(resultsarraystring)//2]
-        strsplit1 = str(resultsarraysplit1)
-        split1 = strsplit1.replace("'", "")
-        resultsarraysplit2 = resultsarraystring[len(resultsarraystring)//2:]
-        strsplit2 = str(resultsarraysplit2)
-        split2 = strsplit2.replace("'", "")
-        await interaction.followup.send("Individual results: ")
-        await interaction.followup.send(split1)
-        await interaction.followup.send(split2)
-    else:
-        result = resultsmessage.replace("'", "")
-        await interaction.followup.send(result)
+    if (diceamount > 1):
+        resultsmessage = ("Individual results: " + str(resultsarraystring))
+        if len(resultsmessage) >= 2000:
+            resultsarraysplit1 = resultsarraystring[:len(resultsarraystring)//2]
+            strsplit1 = str(resultsarraysplit1)
+            split1 = strsplit1.replace("'", "")
+            resultsarraysplit2 = resultsarraystring[len(resultsarraystring)//2:]
+            strsplit2 = str(resultsarraysplit2)
+            split2 = strsplit2.replace("'", "")
+            await interaction.followup.send("Individual results: ")
+            await interaction.followup.send(split1)
+            await interaction.followup.send(split2)
+        else:
+            result = resultsmessage.replace("'", "")
+            await interaction.followup.send(result)
 
 
 @client.event
