@@ -167,6 +167,7 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
         await member.send((f"You have been **warned twice** in **{interaction.guild.name}**. Any further strikes will result in a ban from the server. Reason: " + reason))
+        time.sleep(1/4) #maybe this fixes the weird bug im having with the second strike specifically?
         await member.add_roles(interaction.guild.get_role(Strike2))
         embedtitle = "Second strike applied"
     else:  
@@ -287,16 +288,16 @@ async def on_message_edit(before, after):
 
 @client.event
 async def on_message(message):
-    userroles = message.author.roles
+    #userroles = message.author.roles
     mod = get(message.guild.roles, id=Modrole)
     admin = get(message.guild.roles, id=Adminrole)
     fool = get(message.guild.roles, id=Fool)
     #send something in the chat when mentioned with special lines for mods and higher only
     if client.user.mentioned_in(message) and message.mention_everyone == False:
-        if mod in userroles or admin in userroles or fool in userroles:
-            await message.channel.send(modresponsearray[random.randint(0, len(modresponsearray)-1)])
-        else:
-            await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
+        #if mod in userroles or admin in userroles or fool in userroles:
+            #await message.channel.send(modresponsearray[random.randint(0, len(modresponsearray)-1)])
+        #else:
+        await message.channel.send(ResponseArray[random.randint(0, len(ResponseArray)-1)])
 
     #TODO - Check for invites
         
@@ -370,6 +371,74 @@ async def test(interaction: nextcord.Interaction):
     provenceemoji = nextcord.PartialEmoji.from_str(str(test))
     await interaction.response.send_message(provenceemoji)
 
+#Music related stuff
+import importlib
+youtubedl = importlib.import_module("yt_dlp") # i am incredibly lazy ok
+import asyncio
+
+youtubedl.utils.bug_reports_message = lambda: ""
+
+ytdl_format_options = {
+    "format": "bestaudio/best",
+    "outtmpl": "%(extractor)s-%(id)s-%(title)s.%(ext)s",
+    "restrictfilenames": True,
+    "noplaylist": True,
+    "nocheckcertificate": True,
+    "ignoreerrors": False,
+    "logtostderr": False,
+    "quiet": True,
+    "no_warnings": True,
+    "default_search": "auto",
+    "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
+}
+
+ffmpeg_options = {"options": "-vn"}
+
+ytdl = youtubedl.YoutubeDL(ytdl_format_options)
+
+class YTDLSource(nextcord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+
+        self.data = data
+
+        self.title = data.get("title")
+        self.url = data.get("url")
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        if "entries" in data:
+            # take first item from a playlist
+            data = data["entries"][0]
+
+        filename = data["url"] if stream else ytdl.prepare_filename(data)
+        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def join(interaction: nextcord.Interaction, channel: nextcord.VoiceChannel):
+    """Makes Closure join a voice channel"""
+    await channel.connect()
+    await interaction.response.send_message("Joining voice channel " + str(channel) + "!")
+    
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def leave(interaction: nextcord.Interaction):
+    """Makes Closure leave the voice channel. Message a mod if Closure isn't properly leaving the channel"""
+    for i in client.voice_clients:
+        await i.disconnect()
+    await interaction.response.send_message("Leaving the voice channel!")
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def play(interaction: nextcord.Interaction, url):
+    """Plays a link supported by yt-dl. This is streamed over the network so yell at Zev if it breaks"""
+    for i in client.voice_clients:
+        player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
+        i.play(
+            player, after=lambda e: print(f"Player error: {e}") if e else None
+        )
+        await interaction.response.send_message("Now playing: " + str(player.title))
 
 @client.event
 async def on_ready():
