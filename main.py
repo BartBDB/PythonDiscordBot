@@ -390,6 +390,7 @@ ytdl_format_options = {
     "no_warnings": True,
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
+    "reconnect_streamed": True
 }
 
 ffmpeg_options = {"options": "-vn"}
@@ -431,14 +432,15 @@ async def leave(interaction: nextcord.Interaction):
     await interaction.response.send_message("Leaving the voice channel!")
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-async def play(interaction: nextcord.Interaction, url):
+async def play(interaction: nextcord.Interaction, url: str):
     """Plays a link supported by yt-dl. This is streamed over the network so yell at Zev if it breaks"""
+    await interaction.response.defer()
     for i in client.voice_clients:
         player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
         i.play(
             player, after=lambda e: print(f"Player error: {e}") if e else None
-        )
-        await interaction.response.send_message("Now playing: " + str(player.title))
+        )             
+        await interaction.followup.send("Now playing: " + str(player.title))
 
 @client.event
 async def on_ready():
