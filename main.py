@@ -372,11 +372,10 @@ async def test(interaction: nextcord.Interaction):
     await interaction.response.send_message(provenceemoji)
 
 #Music related stuff
-import importlib
-youtubedl = importlib.import_module("yt_dlp") # i am incredibly lazy ok
+import yt_dlp as youtube_dl
 import asyncio
 
-youtubedl.utils.bug_reports_message = lambda: ""
+youtube_dl.utils.bug_reports_message = lambda: ""
 
 ytdl_format_options = {
     "format": "bestaudio/best",
@@ -389,13 +388,15 @@ ytdl_format_options = {
     "quiet": True,
     "no_warnings": True,
     "default_search": "auto",
-    "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
-    "reconnect_streamed": True
+    "source_address": "0.0.0.0"  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 
-ffmpeg_options = {"options": "-vn"}
+ffmpeg_options = {
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
+    "options": "-vn",
+}
 
-ytdl = youtubedl.YoutubeDL(ytdl_format_options)
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(nextcord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -416,7 +417,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
             data = data["entries"][0]
 
         filename = data["url"] if stream else ytdl.prepare_filename(data)
-        return cls(nextcord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+        return cls(nextcord.FFmpegPCMAudio(source=filename, executable="ffmpeg", pipe=False, stderr=None, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5", options="-vn"), data=data)
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def join(interaction: nextcord.Interaction, channel: nextcord.VoiceChannel):
@@ -440,7 +441,7 @@ async def play(interaction: nextcord.Interaction, url: str):
         i.play(
             player, after=lambda e: print(f"Player error: {e}") if e else None
         )             
-        await interaction.followup.send("Now playing: " + str(player.title))
+        await interaction.followup.send("Now playing: " + str(player.title) + " - " + url)
 
 @client.event
 async def on_ready():
