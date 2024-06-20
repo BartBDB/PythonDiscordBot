@@ -495,15 +495,3 @@ async def on_ready():
     print("Bot is ready to do useful shit!\n")
 
 client.run(BOTTOKEN)
-
-
-#Random message
-#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-#async def randommessage(interaction: nextcord.Interaction,):
-#	"""Grabs a random message from this channel"""
-#	array = []
-#	async for message in interaction.channel.history(limit=500):
-#		array.append(message)
-#	integer = random.randint(0, 500)
-#	await interaction.response.send_message(str(array[integer].author) + ": " + array[integer].content)
-#	await interaction.followup.send(array[integer].jump_url)
