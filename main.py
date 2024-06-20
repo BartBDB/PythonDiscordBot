@@ -364,16 +364,21 @@ async def shutdown(interaction: nextcord.Interaction):
 
 
 #test command
-@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-async def test(interaction: nextcord.Interaction):
-    """A simple command for testing purposes. Obviously."""
-    test = client.get_emoji(1193136758427242536)
-    provenceemoji = nextcord.PartialEmoji.from_str(str(test))
-    await interaction.response.send_message(provenceemoji)
+#@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+#async def test(interaction: nextcord.Interaction):
+#    """A simple command for testing purposes. Obviously."""
+#    test = client.get_emoji(1193136758427242536)
+#    provenceemoji = nextcord.PartialEmoji.from_str(str(test))
+#    await interaction.response.send_message(provenceemoji)
+
 
 #Music related stuff
 import yt_dlp as youtube_dl
 import asyncio
+
+client.queue = []
+client.sentqueue = []
+client.queuemoved = False
 
 youtube_dl.utils.bug_reports_message = lambda: ""
 
@@ -410,7 +415,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream)) 
 
         if "entries" in data:
             # take first item from a playlist
@@ -418,6 +423,53 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
 
         filename = data["url"] if stream else ytdl.prepare_filename(data)
         return cls(nextcord.FFmpegPCMAudio(source=filename, executable="ffmpeg", pipe=False, stderr=None, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5", options="-vn"), data=data)
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def play(interaction: nextcord.Interaction, url: str):
+    """Plays a link supported by yt-dl. This is streamed over the network so yell at Zev if it breaks"""
+    await interaction.response.defer()
+    for i in client.voice_clients:
+        #print(i.is_playing())
+        if i.is_playing():
+            player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
+            client.queue.append(player)         
+            await interaction.followup.send("Added " + str(player.title) + " to the queue. - " + url)
+        else:
+            player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
+            i.play(
+                player, after=lambda e: print(f"Player error: {e}") if e else None
+            )    
+            client.queue.append(player)
+            await interaction.followup.send("Now playing: " + str(player.title) + " - " + url)
+        #print(client.queue)
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def queue(interaction: nextcord.Interaction):
+    """Shows the current queue, if any"""
+    await interaction.response.defer()
+    if len(client.queue) > 0:
+        client.sentqueue.clear()
+        for i in client.queue:          
+            client.sentqueue.append(i.title)
+        await interaction.followup.send(client.sentqueue)
+    else:
+        await interaction.followup.send("The queue is empty!")
+
+@tasks.loop(seconds=5) #This is kinda ugly right now but since it only runs music for one server it will be fine
+async def updatequeue():
+    if client.voice_clients:
+        for i in client.voice_clients:
+            if i.is_playing() and (len(client.queue) > 1) and client.queuemoved == False:
+                client.queue.pop(0) #NOT REMOVE! Remove needs a specified value, pop just needs an integer
+                client.queuemoved = True
+            if (i.is_playing() == False) and (len(client.queue) >= 1) and client.queuemoved == True:
+                i.play(
+                    client.queue[0], after=lambda e: print(f"Player error: {e}") if e else None
+                )
+                client.queuemoved = False
+
+#https://www.youtube.com/watch?v=sJC447aP7yg
+#https://www.youtube.com/watch?v=Cr_hpsBXlDc
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def join(interaction: nextcord.Interaction, channel: nextcord.VoiceChannel):
@@ -432,20 +484,10 @@ async def leave(interaction: nextcord.Interaction):
         await i.disconnect()
     await interaction.response.send_message("Leaving the voice channel!")
 
-@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
-async def play(interaction: nextcord.Interaction, url: str):
-    """Plays a link supported by yt-dl. This is streamed over the network so yell at Zev if it breaks"""
-    await interaction.response.defer()
-    for i in client.voice_clients:
-        player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
-        i.play(
-            player, after=lambda e: print(f"Player error: {e}") if e else None
-        )             
-        await interaction.followup.send("Now playing: " + str(player.title) + " - " + url)
-
 @client.event
 async def on_ready():
     updatestatus.start()
+    updatequeue.start()
     global modresponsearray 
     modresponsearray = ResponseArray + ModArray
     global loggingchannel
