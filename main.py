@@ -455,6 +455,12 @@ async def queue(interaction: nextcord.Interaction):
     else:
         await interaction.followup.send("The queue is empty!")
 
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def clearqueue(interaction: nextcord.Interaction):
+    """Clears the queue. Use this command in case something goes wrong"""
+    client.queue.clear()
+    await interaction.followup.send("The queue has been cleared!")
+
 @tasks.loop(seconds=5) #This is kinda ugly right now but since it only runs music for one server it will be fine
 async def updatequeue():
     if client.voice_clients:
