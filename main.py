@@ -433,14 +433,14 @@ async def play(interaction: nextcord.Interaction, url: str):
         if i.is_playing():
             player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
             client.queue.append(player)         
-            await interaction.followup.send("Added " + str(player.title) + " to the queue. - " + url)
+            await interaction.followup.send("Added " + str(player.title) + " to the queue. - <" + url + ">")
         else:
             player = await YTDLSource.from_url(url, loop=client.loop, stream=True)
             i.play(
                 player, after=lambda e: print(f"Player error: {e}") if e else None
             )    
             client.queue.append(player)
-            await interaction.followup.send("Now playing: " + str(player.title) + " - " + url)
+            await interaction.followup.send("Now playing: " + str(player.title) + " - <" + url + ">")
         #print(client.queue)
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
