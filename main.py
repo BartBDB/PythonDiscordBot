@@ -456,6 +456,30 @@ async def queue(interaction: nextcord.Interaction):
         await interaction.followup.send("The queue is empty!")
 
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
+async def skip(interaction: nextcord.Interaction):
+    await interaction.response.defer()
+    for i in client.voice_clients:
+        if not i.is_playing():
+            interaction.followup.send("No song is currently playing!")
+            return
+        else:
+            if len(client.queue) > 0:
+                i.stop()
+                if client.queuemoved == True:
+                    i.play(
+                    client.queue[0], after=lambda e: print(f"Player error: {e}") if e else None
+                    )
+                    interaction.followup.send("The current song has been skipped!")
+                else:
+                    client.queue.pop(0)
+                    i.play(
+                    client.queue[0], after=lambda e: print(f"Player error: {e}") if e else None
+                    )
+                    interaction.followup.send("The current song has been skipped!")
+            else:
+                interaction.followup.send("The queue is empty!")
+
+@client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 async def clearqueue(interaction: nextcord.Interaction):
     """Clears the queue. Use this command in case something goes wrong"""
     client.queue.clear()
