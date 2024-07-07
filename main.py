@@ -15,6 +15,8 @@ intents.members = True
 
 client = commands.Bot(command_prefix='&', intents=nextcord.Intents.all())
 
+#Important note for all commands: remember to use TRY for any messages sent to a user! If you don't do this, anyone who has blocked the bot will error out the function!
+
 #Thisll be done soon i swear
 #def create_embed(embedtitle, membermention, interactionuserid, interactionusername, membername, memberid, reason, hasavatar, displayavatar):
 #    channel = client.get_channel(LogChannelID)
@@ -50,7 +52,6 @@ async def hug(interaction: nextcord.Interaction):
     else:
         await interaction.response.send_message("Sending you a hug!", files=[nextcord.File(hugfilepath + '/hug.gif')])
 
-
 #kick command and error
 @client.slash_command(guild_ids=[TestServer, ZeroSMServer])
 @application_checks.has_permissions(kick_members=True)
@@ -71,9 +72,13 @@ async def kick(interaction: nextcord.Interaction, member: nextcord.Member, reaso
     await listchannel.send(embed=embed)
     await channel.send(embed=embed)
     await channel.send((f"User **{member}** has been **kicked** by **{interaction.user.name}**. Reason: " + reason))
-    await member.send((f"You have been **kicked** from **{interaction.guild.name}**. Reason: " + reason))
-    time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
-    await member.kick(reason=reason)
+    try:
+        await member.send((f"You have been **kicked** from **{interaction.guild.name}**. Reason: " + reason))
+        time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
+        await member.kick(reason=reason)
+    except Exception:
+        await member.kick(reason=reason)
+        await interaction.followup.send("I was not able to send the affected user a direct message.")
 
 
 @kick.error
@@ -103,9 +108,13 @@ async def ban(interaction: nextcord.Interaction, member: nextcord.Member, reason
         embed.set_thumbnail(member.display_avatar)
     await listchannel.send(embed=embed)
     await channel.send(embed=embed)
-    await member.send((f"You have been **banned** from **{interaction.guild.name}**. Reason: " + reason))
-    time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
-    await member.ban(reason=reason)
+    try:
+        await member.send((f"You have been **banned** from **{interaction.guild.name}**. Reason: " + reason))
+        time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
+        await member.ban(reason=reason)
+    except Exception:
+        await member.ban(reason=reason)
+        await interaction.followup.send("I was not able to send the affected user a direct message.")
 
 
 @ban.error
@@ -136,9 +145,12 @@ async def mute(interaction: nextcord.Interaction, member: nextcord.Member, reaso
             embed.set_thumbnail(member.display_avatar)
         await listchannel.send(embed=embed)
         await channel.send(embed=embed)
-        await member.send((f"You have been **muted** in **{interaction.guild.name}**. Reason: " + reason))
-        await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
-
+        try:
+            await member.send((f"You have been **muted** in **{interaction.guild.name}**. Reason: " + reason))
+            await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
+        except Exception:
+            await member.add_roles(interaction.guild.get_role(ZeroSMMutedRole))
+            await interaction.followup.send("I was not able to send the affected user a direct message.")
 
 @mute.error
 async def mute_error(interaction: nextcord.Interaction, error):
@@ -160,21 +172,35 @@ async def warn(interaction: nextcord.Interaction, member: nextcord.Member, reaso
         reason = "No reason given." 
     if member.get_role(Strike2):
         await interaction.response.send_message(f'User **{member}** has been **warned a third time and got banned**. Reason: '+ reason)
-        await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
-        time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
-        await member.ban(reason=reason)
         embedtitle = "Ban due to 3rd strike"
+        try:
+            await member.send((f"You have been **warned three times and got banned** from **{interaction.guild.name}**. Reason: " + reason))
+            time.sleep(1/4) #not doing this results in the message not being sent and the bot erroring out.
+            await member.ban(reason=reason)     
+        except Exception:
+            await member.ban(reason=reason)
+            await interaction.followup.send("I was not able to send the affected user a direct message.")
+    
     elif member.get_role(Strike1):
         await interaction.response.send_message(f'User **{member}** has been **warned a second time**. Reason: '+ reason)
-        await member.send((f"You have been **warned twice** in **{interaction.guild.name}**. Any further strikes will result in a ban from the server. Reason: " + reason))
-        time.sleep(1/4) #maybe this fixes the weird bug im having with the second strike specifically?
-        await member.add_roles(interaction.guild.get_role(Strike2))
         embedtitle = "Second strike applied"
+        try:
+            await member.send((f"You have been **warned twice** in **{interaction.guild.name}**. Any further strikes will result in a ban from the server. Reason: " + reason))
+            time.sleep(1/4)
+            await member.add_roles(interaction.guild.get_role(Strike2))
+        except Exception:
+            await member.add_roles(interaction.guild.get_role(Strike2))
+            await interaction.followup.send("I was not able to send the affected user a direct message.")
+
     else:  
         await interaction.response.send_message(f'User **{member}** has been **warned once**. Reason: '+ reason)
-        await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
-        await member.add_roles(interaction.guild.get_role(Strike1))
         embedtitle = "First strike applied"
+        try:
+            await member.send((f"You have been **warned once** in **{interaction.guild.name}**. Reason: " + reason))
+            time.sleep(1/4)        
+        except Exception:          
+            await interaction.followup.send("I was not able to send the affected user a direct message.")
+        await member.add_roles(interaction.guild.get_role(Strike1))
 
     #Send a message in the list channel
     embed=nextcord.Embed(color=nextcord.Colour.dark_red(), title=embedtitle, description= member.mention)
